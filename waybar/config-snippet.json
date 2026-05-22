@@ -1,0 +1,9 @@
+{
+  "custom/akari": {
+    "exec": "~/.config/waybar/scripts/akari.sh",
+    "interval": 5,
+    "on-click": "akari",
+    "return-type": "",
+    "format": "{}"
+  }
+}
