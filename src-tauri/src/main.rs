@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
     sync::Mutex,
 };
-use tauri::{Manager, State};
+use tauri::{Manager, State, WindowEvent};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -128,11 +128,31 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.close();
-            } else {
-                app.exit(0);
+                match window.is_visible() {
+                    Ok(true) => {
+                        let _ = window.hide();
+                    }
+                    Ok(false) => {
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                    Err(_) => {}
+                }
             }
         }))
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                let window_for_close = window.clone();
+                window.on_window_event(move |event| {
+                    if let WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = window_for_close.hide();
+                    }
+                });
+            }
+
+            Ok(())
+        })
         .manage(AppState {
             storage_lock: Mutex::new(()),
         })

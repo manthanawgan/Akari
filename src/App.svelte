@@ -5,19 +5,19 @@
   import TodoItem from "./lib/TodoItem.svelte";
   import type { Todo } from "./app";
 
-  let todos: Todo[] = [];
-  let draft = "";
-  let loading = true;
-  let error = "";
+  let todos = $state<Todo[]>([]);
+  let draft = $state("");
+  let loading = $state(true);
+  let error = $state("");
   let input: HTMLInputElement;
 
-  const incompleteCount = () => todos.filter((todo) => !todo.done).length;
-
-  const sortedTodos = () =>
+  const incompleteCount = $derived(todos.filter((todo) => !todo.done).length);
+  const sortedTodos = $derived(
     [...todos].sort((a, b) => {
       if (a.done !== b.done) return Number(a.done) - Number(b.done);
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
+    })
+  );
 
   async function loadTodos() {
     loading = true;
@@ -38,17 +38,16 @@
     const text = draft.trim();
     if (!text) return;
 
-    draft = "";
     error = "";
 
     try {
-      const todo = await invoke<Todo>("add_todo", { text });
-      todos = [todo, ...todos];
+      await invoke<Todo>("add_todo", { text });
+      todos = await invoke<Todo[]>("get_todos");
+      draft = "";
       await tick();
       input?.focus();
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
-      draft = text;
     }
   }
 
@@ -56,8 +55,8 @@
     error = "";
 
     try {
-      const updated = await invoke<Todo>("toggle_todo", { id });
-      todos = todos.map((todo) => (todo.id === id ? updated : todo));
+      await invoke<Todo>("toggle_todo", { id });
+      todos = await invoke<Todo[]>("get_todos");
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }
@@ -65,26 +64,29 @@
 
   async function deleteTodo(id: string) {
     error = "";
-    const previous = todos;
-    todos = todos.filter((todo) => todo.id !== id);
 
     try {
       await invoke("delete_todo", { id });
+      todos = await invoke<Todo[]>("get_todos");
     } catch (err) {
-      todos = previous;
       error = err instanceof Error ? err.message : String(err);
     }
   }
 
-  async function closeWindow() {
-    await getCurrentWindow().close();
+  async function hideWindow() {
+    await getCurrentWindow().hide();
   }
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Escape") {
       event.preventDefault();
-      closeWindow();
+      hideWindow();
     }
+  }
+
+  function handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    addTodo();
   }
 
   onMount(() => {
@@ -98,18 +100,18 @@
   <header class="titlebar">
     <div>
       <h1>Akari</h1>
-      <p>{incompleteCount()} open</p>
+      <p>{incompleteCount} open</p>
     </div>
-    <button class="icon-button" type="button" aria-label="Close Akari" on:click={closeWindow}>×</button>
+    <button class="icon-button" type="button" aria-label="Close Akari" onclick={hideWindow}>×</button>
   </header>
 
   <section class="todo-list" aria-label="Todos">
     {#if loading}
       <p class="empty">Loading...</p>
-    {:else if sortedTodos().length === 0}
+    {:else if sortedTodos.length === 0}
       <p class="empty">Nothing pending.</p>
     {:else}
-      {#each sortedTodos() as todo (todo.id)}
+      {#each sortedTodos as todo (todo.id)}
         <TodoItem {todo} onToggle={toggleTodo} onDelete={deleteTodo} />
       {/each}
     {/if}
@@ -119,7 +121,7 @@
     <p class="error" role="alert">{error}</p>
   {/if}
 
-  <form class="composer" on:submit|preventDefault={addTodo}>
+  <form class="composer" onsubmit={handleSubmit}>
     <input
       bind:this={input}
       bind:value={draft}
