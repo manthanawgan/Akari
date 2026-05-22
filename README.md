@@ -77,9 +77,7 @@ Then add `"custom/akari"` to `modules-right`, `modules-left`, or `modules-center
 Add these rules to your Hyprland config:
 
 ```conf
-windowrulev2 = float, class:^(akari)$
-windowrulev2 = size 380 500, class:^(akari)$
-windowrulev2 = move 100%-390 30, class:^(akari)$
+windowrule = match:class ^(akari)$, float on, size 380 500, move 100%-390 30
 ```
 
 Adjust the `move` rule if your Waybar is not at the top.
