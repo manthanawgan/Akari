@@ -75,7 +75,7 @@ fn get_todos(state: State<'_, AppState>) -> Result<Vec<Todo>, String> {
 }
 
 #[tauri::command]
-fn add_todo(text: String, state: State<'_, AppState>) -> Result<Todo, String> {
+fn add_todo(text: String, state: State<'_, AppState>) -> Result<Vec<Todo>, String> {
     let text = text.trim();
     if text.is_empty() {
         return Err("Todo text cannot be empty".to_string());
@@ -90,13 +90,13 @@ fn add_todo(text: String, state: State<'_, AppState>) -> Result<Todo, String> {
         created_at: Utc::now().to_rfc3339(),
     };
 
-    todos.push(todo.clone());
+    todos.push(todo);
     write_todos_to_disk(&todos)?;
-    Ok(todo)
+    Ok(todos)
 }
 
 #[tauri::command]
-fn toggle_todo(id: String, state: State<'_, AppState>) -> Result<Todo, String> {
+fn toggle_todo(id: String, state: State<'_, AppState>) -> Result<Vec<Todo>, String> {
     let _guard = state.storage_lock.lock().map_err(|_| "Storage lock poisoned".to_string())?;
     let mut todos = read_todos_from_disk()?;
     let todo = todos
@@ -105,13 +105,12 @@ fn toggle_todo(id: String, state: State<'_, AppState>) -> Result<Todo, String> {
         .ok_or_else(|| "Todo not found".to_string())?;
 
     todo.done = !todo.done;
-    let updated = todo.clone();
     write_todos_to_disk(&todos)?;
-    Ok(updated)
+    Ok(todos)
 }
 
 #[tauri::command]
-fn delete_todo(id: String, state: State<'_, AppState>) -> Result<(), String> {
+fn delete_todo(id: String, state: State<'_, AppState>) -> Result<Vec<Todo>, String> {
     let _guard = state.storage_lock.lock().map_err(|_| "Storage lock poisoned".to_string())?;
     let mut todos = read_todos_from_disk()?;
     let original_len = todos.len();
@@ -121,7 +120,8 @@ fn delete_todo(id: String, state: State<'_, AppState>) -> Result<(), String> {
         return Err("Todo not found".to_string());
     }
 
-    write_todos_to_disk(&todos)
+    write_todos_to_disk(&todos)?;
+    Ok(todos)
 }
 
 fn main() {

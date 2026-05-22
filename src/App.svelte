@@ -9,22 +9,33 @@
   let draft = $state("");
   let loading = $state(true);
   let error = $state("");
+  let listRevision = $state(0);
+  let incompleteCount = $state(0);
   let input: HTMLInputElement;
 
-  const incompleteCount = $derived(todos.filter((todo) => !todo.done).length);
-  const sortedTodos = $derived(
-    [...todos].sort((a, b) => {
+  function sortTodos(nextTodos: Todo[]) {
+    return [...nextTodos].sort((a, b) => {
       if (a.done !== b.done) return Number(a.done) - Number(b.done);
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    })
-  );
+    });
+  }
+
+  function setTodos(nextTodos: Todo[]) {
+    todos = sortTodos(nextTodos);
+    incompleteCount = todos.filter((todo) => !todo.done).length;
+    listRevision += 1;
+  }
+
+  async function refreshTodos() {
+    setTodos(await invoke<Todo[]>("get_todos"));
+  }
 
   async function loadTodos() {
     loading = true;
     error = "";
 
     try {
-      todos = await invoke<Todo[]>("get_todos");
+      await refreshTodos();
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     } finally {
@@ -41,8 +52,7 @@
     error = "";
 
     try {
-      await invoke<Todo>("add_todo", { text });
-      todos = await invoke<Todo[]>("get_todos");
+      setTodos(await invoke<Todo[]>("add_todo", { text }));
       draft = "";
       await tick();
       input?.focus();
@@ -55,8 +65,8 @@
     error = "";
 
     try {
-      await invoke<Todo>("toggle_todo", { id });
-      todos = await invoke<Todo[]>("get_todos");
+      setTodos(await invoke<Todo[]>("toggle_todo", { id }));
+      await tick();
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }
@@ -66,8 +76,8 @@
     error = "";
 
     try {
-      await invoke("delete_todo", { id });
-      todos = await invoke<Todo[]>("get_todos");
+      setTodos(await invoke<Todo[]>("delete_todo", { id }));
+      await tick();
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }
@@ -90,7 +100,27 @@
   }
 
   onMount(() => {
+    let unlistenFocus: (() => void) | undefined;
+    const refreshTimer = globalThis.setInterval(() => {
+      refreshTodos();
+    }, 1000);
+    const appWindow = getCurrentWindow();
+
     loadTodos();
+
+    appWindow.onFocusChanged(({ payload: focused }) => {
+      if (focused) {
+        refreshTodos();
+        tick().then(() => input?.focus());
+      }
+    }).then((unlisten) => {
+      unlistenFocus = unlisten;
+    });
+
+    return () => {
+      globalThis.clearInterval(refreshTimer);
+      unlistenFocus?.();
+    };
   });
 </script>
 
@@ -108,12 +138,14 @@
   <section class="todo-list" aria-label="Todos">
     {#if loading}
       <p class="empty">Loading...</p>
-    {:else if sortedTodos.length === 0}
+    {:else if todos.length === 0}
       <p class="empty">Nothing pending.</p>
     {:else}
-      {#each sortedTodos as todo (todo.id)}
-        <TodoItem {todo} onToggle={toggleTodo} onDelete={deleteTodo} />
-      {/each}
+      {#key listRevision}
+        {#each todos as todo (todo.id)}
+          <TodoItem {todo} onToggle={toggleTodo} onDelete={deleteTodo} />
+        {/each}
+      {/key}
     {/if}
   </section>
 
