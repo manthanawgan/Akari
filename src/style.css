@@ -39,7 +39,7 @@ input {
   font: inherit;
 }
 
-.akari-shell {
+.pillow-shell {
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   width: 100vw;

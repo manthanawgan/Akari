@@ -1,8 +1,8 @@
 {
-  "custom/akari": {
-    "exec": "~/.config/waybar/scripts/akari.sh",
+  "custom/pillow": {
+    "exec": "~/.config/waybar/scripts/pillow.sh",
     "interval": 5,
-    "on-click": "akari",
+    "on-click": "pillow",
     "return-type": "",
     "format": "{}"
   }

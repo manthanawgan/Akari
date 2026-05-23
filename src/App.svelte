@@ -126,13 +126,13 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<main class="akari-shell">
+<main class="pillow-shell">
   <header class="titlebar">
     <div>
-      <h1>Akari</h1>
+      <h1>Pillow</h1>
       <p>{incompleteCount} open</p>
     </div>
-    <button class="icon-button" type="button" aria-label="Close Akari" onclick={hideWindow}>×</button>
+    <button class="icon-button" type="button" aria-label="Close Pillow" onclick={hideWindow}>×</button>
   </header>
 
   <section class="todo-list" aria-label="Todos">

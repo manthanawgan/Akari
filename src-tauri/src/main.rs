@@ -22,7 +22,7 @@ struct AppState {
 
 fn storage_dir() -> Result<PathBuf, String> {
     let base = dirs::data_local_dir().ok_or("Could not find local data directory")?;
-    Ok(base.join("akari"))
+    Ok(base.join("pillow"))
 }
 
 fn todos_path() -> Result<PathBuf, String> {
@@ -163,5 +163,5 @@ fn main() {
             delete_todo
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Akari");
+        .expect("error while running Pillow");
 }

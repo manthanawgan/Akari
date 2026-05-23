@@ -1,8 +1,8 @@
-# Akari
+# Pillow
 
-Akari is a tiny sticky-note todo popup for Arch Linux, Hyprland, and Waybar.
+Pillow is a tiny sticky-note todo popup for Arch Linux, Hyprland, and Waybar.
 
-It stores todos in `~/.local/share/akari/todos.json`, shows the incomplete count in Waybar, and opens as a small frameless Tauri window.
+It stores todos in `~/.local/share/pillow/todos.json`, shows the incomplete count in Waybar, and opens as a small frameless Tauri window.
 
 ## Features
 
@@ -41,10 +41,10 @@ npm install
 npm run tauri:build
 ```
 
-After building, install or symlink the generated `akari` binary somewhere in your `PATH` so Waybar can launch it:
+After building, install or symlink the generated `pillow` binary somewhere in your `PATH` so Waybar can launch it:
 
 ```bash
-sudo install -Dm755 src-tauri/target/release/akari /usr/local/bin/akari
+sudo install -Dm755 src-tauri/target/release/pillow /usr/local/bin/pillow
 ```
 
 ## Waybar
@@ -53,31 +53,33 @@ Install the Waybar script:
 
 ```bash
 mkdir -p ~/.config/waybar/scripts
-install -Dm755 waybar/akari.sh ~/.config/waybar/scripts/akari.sh
+install -Dm755 waybar/pillow.sh ~/.config/waybar/scripts/pillow.sh
 ```
 
 Add this module to your Waybar `config.json`:
 
 ```json
 {
-  "custom/akari": {
-    "exec": "~/.config/waybar/scripts/akari.sh",
+  "custom/pillow": {
+    "exec": "~/.config/waybar/scripts/pillow.sh",
     "interval": 5,
-    "on-click": "akari",
+    "on-click": "pillow",
     "return-type": "",
     "format": "{}"
   }
 }
 ```
 
-Then add `"custom/akari"` to `modules-right`, `modules-left`, or `modules-center`.
+Then add `"custom/pillow"` to `modules-right`, `modules-left`, or `modules-center`.
 
 ## Hyprland
 
 Add these rules to your Hyprland config:
 
 ```conf
-windowrule = match:class ^(akari)$, float on, size 380 500, move 100%-390 30
+windowrulev2 = float, class:^(pillow)$
+windowrulev2 = size 380 500, class:^(pillow)$
+windowrulev2 = move 100%-390 30, class:^(pillow)$
 ```
 
 Adjust the `move` rule if your Waybar is not at the top.
@@ -87,7 +89,7 @@ Adjust the `move` rule if your Waybar is not at the top.
 Todos live at:
 
 ```text
-~/.local/share/akari/todos.json
+~/.local/share/pillow/todos.json
 ```
 
 The JSON shape is:
@@ -103,4 +105,4 @@ The JSON shape is:
 ]
 ```
 
-Akari also writes `~/.local/share/akari/last_modified` on every change.
+Pillow also writes `~/.local/share/pillow/last_modified` on every change.

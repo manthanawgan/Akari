@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Akari",
+  "productName": "Pillow",
   "version": "0.1.0",
-  "identifier": "dev.akari.todo",
+  "identifier": "dev.pillow.todo",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -13,8 +13,8 @@
     "windows": [
       {
         "label": "main",
-        "title": "Akari",
-        "windowClassname": "akari",
+        "title": "Pillow",
+        "windowClassname": "pillow",
         "width": 380,
         "height": 500,
         "minWidth": 320,

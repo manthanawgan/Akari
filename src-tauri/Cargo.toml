@@ -1,8 +1,8 @@
 [package]
-name = "akari"
+name = "pillow"
 version = "0.1.0"
 description = "A Waybar todo popup for Hyprland"
-authors = ["Akari contributors"]
+authors = ["Pillow contributors"]
 edition = "2021"
 
 [build-dependencies]
